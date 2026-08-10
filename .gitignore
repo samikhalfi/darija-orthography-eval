@@ -1,0 +1,11 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.ipynb_checkpoints/
+data/audio/
+results/raw/
+*.wav
+*.mp3
+*.pt
+.env
