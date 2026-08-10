@@ -19,6 +19,21 @@ nothing downstream of it is safe:
 
 Same problem, two hats. This repository measures it and then tries to fix it.
 
+## Claim
+
+Word error rate for Moroccan Darija is not a scalar. It is a range whose width
+depends on an orthographic convention that is almost never stated. If that is
+true, then a published Darija ASR score without its reference convention is
+under-specified, and two such scores cannot be compared.
+
+The same instability shows up in lexical retrieval, where it costs recall rather
+than credibility.
+
+**What would falsify this:** if the spread across conventions turns out to be
+small relative to the differences between systems being compared, the claim is
+uninteresting and belongs in a footnote. That outcome gets published here in the
+same font as any other.
+
 ## Questions
 
 1. How much does WER move for the same audio and the same transcription, scored
@@ -26,13 +41,22 @@ Same problem, two hats. This repository measures it and then tries to fix it.
 2. Does a canonicalisation layer shrink that spread, and by how much?
 3. Does the same layer change retrieval failure rate on Darija queries?
 
+## Prior art
+
+Orthographic variance in dialectal Arabic is a known problem and this repository
+does not assume otherwise. Week 1 includes a literature check, recorded in
+`notes/prior-art.md`, covering what has already been measured and where. If the
+central claim above has been established elsewhere, it is cited and this work
+becomes an extension rather than a first look. Finding that out early is cheaper
+than finding it out at the write-up.
+
 ## Plan
 
 Written 2026-08-10, before any code, so the dates mean something.
 
 | Week | Dates | Deliverable |
 |---|---|---|
-| 1 | 11 to 17 Aug | Evaluation set built. Zero-shot transcription with open multilingual models. WER and CER scored against 2 to 3 orthographic references. The spread published. |
+| 1 | 11 to 17 Aug | Prior-art check in `notes/prior-art.md`. Evaluation set built. Zero-shot transcription with open multilingual models. WER and CER scored against 2 to 3 orthographic references. The spread published. |
 | 2 | 18 to 24 Aug | Canonicalisation layer: Arabic script, Arabizi with numerals, French insertions, elongation, diacritics. Re-score week 1 through it and report the change. |
 | 3 | 25 to 31 Aug | Graded Darija query set. Retrieval with and without canonicalisation. Failure@k with 95% confidence intervals. |
 | 4 | 1 to 7 Sep | Write-up. Findings, limitations, and the results that do not support the hypothesis. |
