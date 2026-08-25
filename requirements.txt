@@ -1,0 +1,9 @@
+# Weeks 1 to 3 run on CPU. Nothing here trains anything.
+#
+# Blackwell note (RTX 5070 Ti, sm_120): if you later add torch, the stock
+# wheel below CUDA 12.8 has no kernels for this GPU and dies at the first
+# .cuda() call. Install the cu128 or newer index explicitly.
+
+datasets>=2.19          # corpus loading from Hugging Face
+soundfile>=0.12         # audio IO
+numpy>=1.26

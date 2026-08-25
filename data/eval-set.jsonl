@@ -1,0 +1,2 @@
+{"id": "example-0001", "audio": "audio/example-0001.wav", "source": "FORMAT EXAMPLE, replace", "refs": {"arabic": "شكرا بزاف", "arabizi": "shukran bezzaf", "french": "chokran bezzaf"}, "notes": "Illustrative only. sh vs ch is the French-influence axis and Alef folding does not touch it."}
+{"id": "example-0002", "audio": "audio/example-0002.wav", "source": "FORMAT EXAMPLE, replace", "refs": {"arabic": "عافاك", "arabizi": "3afak", "french": "aafak"}, "notes": "Illustrative only. 3 for ع is the numeral axis. Verify before use."}
