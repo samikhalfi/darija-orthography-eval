@@ -21,67 +21,46 @@ Same problem, two hats. This repository measures it and then tries to fix it.
 
 ## Claim
 
-Word error rate for Moroccan Darija is not a scalar. It is a range whose width
-depends on an orthographic convention that is almost never stated. If that is
-true, then a published Darija ASR score without its reference convention is
-under-specified, and two such scores cannot be compared.
+Revised 2026-08-17 after the prior-art check in `notes/prior-art.md`. The first
+version of this claim was that WER for Darija is unstable without a stated
+orthographic convention. That is true and it is **not new**: Ali et al. stated it
+in 2017 and proposed WERd to address it, and normalising before scoring is
+standard practice in Arabic ASR. The narrower claim that survives is this one.
 
-The same instability shows up in lexical retrieval, where it costs recall rather
-than credibility.
+> The normalisation conventionally applied before computing WER for Arabic
+> assumes Arabic script. It folds Alef, Yaa and Taa variants and handles
+> diacritics. Moroccan Darija is substantially written in Latin script with
+> numerals (3, 7, 9, 2), which is a transliteration rather than a spelling
+> variant, and no amount of Alef folding reaches it.
 
-**What would falsify this:** if the spread across conventions turns out to be
-small relative to the differences between systems being compared, the claim is
-uninteresting and belongs in a footnote. That outcome gets published here in the
-same font as any other.
+So: how much error does that assumption leave on the table for Darija, and does
+a cross-script canonicalisation layer recover it? The same question applies to
+lexical retrieval, where it costs recall rather than comparability.
+
+**What would falsify this:** if the cross-script spread turns out to be small
+relative to the differences between the systems being compared, or if existing
+Arabic-script normalisation already absorbs most of it, the claim is
+uninteresting. That outcome gets published here in the same font as any other.
 
 ## Questions
 
-1. How much does WER move for the same audio and the same transcription, scored
-   against different but equally valid orthographic references?
-2. Does a canonicalisation layer shrink that spread, and by how much?
-3. Does the same layer change retrieval failure rate on Darija queries?
+1. After the standard Arabic-script normalisation has already been applied, how
+   much does WER still move for the same hypothesis scored against an
+   Arabic-script reference versus a Latin-script-with-numerals one?
+2. Does a cross-script canonicalisation layer recover that gap, and how much of
+   it?
+3. Does the same layer change lexical retrieval failure@k on Darija queries, or
+   is the effect specific to transcription scoring?
 
 ## Prior art
 
-Orthographic variance in dialectal Arabic is a known problem and this repository
-does not assume otherwise. Week 1 includes a literature check, recorded in
-`notes/prior-art.md`, covering what has already been measured and where. If the
-central claim above has been established elsewhere, it is cited and this work
-becomes an extension rather than a first look. Finding that out early is cheaper
-than finding it out at the write-up.
+Done, before any code. See `notes/prior-art.md`. Short version: the original
+framing was already covered by the literature, the check caught it in week 1
+rather than at the write-up, and the claim above is the narrower one that
+survived. Work this repository extends rather than competes with:
 
-## Plan
-
-Written 2026-08-10, before any code, so the dates mean something.
-
-| Week | Dates | Deliverable |
-|---|---|---|
-| 1 | 11 to 17 Aug | Prior-art check in `notes/prior-art.md`. Evaluation set built. Zero-shot transcription with open multilingual models. WER and CER scored against 2 to 3 orthographic references. The spread published. |
-| 2 | 18 to 24 Aug | Canonicalisation layer: Arabic script, Arabizi with numerals, French insertions, elongation, diacritics. Re-score week 1 through it and report the change. |
-| 3 | 25 to 31 Aug | Graded Darija query set. Retrieval with and without canonicalisation. Failure@k with 95% confidence intervals. |
-| 4 | 1 to 7 Sep | Write-up. Findings, limitations, and the results that do not support the hypothesis. |
-| buffer | 8 to 19 Sep | Slack. Nothing is scheduled here on purpose. |
-
-## Scope, and what is deliberately not here
-
-Parameter-efficient adaptation (LoRA, adapter fusion) is **out of scope for this
-repository**. It is the obvious next step and it is not attempted here, because
-an adaptation result I cannot fully explain is worth less than an evaluation
-result I can. The foundations work that would make it defensible is tracked
-separately at [ml-foundations](https://github.com/samikhalfi/ml-foundations).
-
-The evaluation set is small by design. The week 1 finding is about **variance in
-the metric**, not about model quality, and metric variance does not need a large
-corpus to demonstrate. Sample size and its consequences are stated with the
-results rather than glossed.
-
-## Method notes
-
-- Every number is reported with the reference convention it was scored against.
-  A WER with no stated orthography is not a result.
-- Negative and inconvenient results are published. If canonicalisation does not
-  help retrieval, that goes in `FINDINGS.md` in the same font as everything else.
-- Confidence intervals accompany comparisons, including the ones that overlap.
+- Ali, Nakov, Bell and Renals (2017), *WERd*, arXiv:1709.07484
+- SN-WER, script-normalised WER for multi-script Indic ASR, arXiv:2606.02548
 
 ## Layout
 
