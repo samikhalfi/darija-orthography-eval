@@ -62,6 +62,46 @@ survived. Work this repository extends rather than competes with:
 - Ali, Nakov, Bell and Renals (2017), *WERd*, arXiv:1709.07484
 - SN-WER, script-normalised WER for multi-script Indic ASR, arXiv:2606.02548
 
+## Plan
+
+Original schedule written 2026-08-10 before any code. Re-dated 2026-08-26 after
+the prior-art check moved week 1, with the deadline it is working back from.
+
+| Stage | Dates | Deliverable | State |
+|---|---|---|---|
+| 0 | 10 Aug | Plan, claim and falsification criterion committed before code | done |
+| 1 | 25 to 26 Aug | Prior-art check. Claim narrowed. Metric and normaliser implemented, decisions recorded | done |
+| 2 | 27 Aug to 2 Sep | Evaluation set built: 100 to 200 utterances, hand-written references per convention | **next** |
+| 3 | 3 to 9 Sep | Zero-shot transcription. WER and CER per convention. Spread published, per convention pair | |
+| 4 | 10 to 16 Sep | Canonicalisation re-score. How much of the recoverable gap it closes, and the ablations on degemination and و/ي | |
+| 5 | 17 to 19 Sep | Write-up in FINDINGS.md, limitations included | |
+
+Stage 3 onward is blocked on stage 2. The references have to be hand-written by
+a native speaker, which is the one part of this that cannot be parallelised or
+generated.
+
+## Scope, and what is deliberately not here
+
+Parameter-efficient adaptation (LoRA, adapter fusion) is **out of scope**. It is
+the obvious next step and it is not attempted, because an adaptation result I
+cannot fully explain is worth less than an evaluation result I can. The
+foundations work that would make it defensible is tracked separately.
+
+The evaluation set is small by design. The finding concerns **variance in the
+metric**, not model quality, and metric variance does not need a large corpus to
+demonstrate. Sample size and its consequences are stated with the results rather
+than glossed.
+
+## Method notes
+
+- Every number is reported with the reference convention it was scored against.
+  A WER with no stated orthography is not a result.
+- WER and CER are always reported together. Across scripts WER saturates at 1.0
+  and stops distinguishing a near miss from unrelated text.
+- Negative and inconvenient results are published. Finding 0 in FINDINGS.md was
+  not predicted by this plan and it constrains stage 4.
+- Confidence intervals accompany comparisons, including the ones that overlap.
+
 ## Layout
 
 ```
