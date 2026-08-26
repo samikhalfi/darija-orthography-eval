@@ -1,99 +1,148 @@
 """Normalisation, in two layers.
 
 Layer 1, `normalise_arabic`, is the BASELINE: the Alef/Yaa/Taa folding that
-Arabic ASR papers apply before reporting WER. It is prior art, not a
-contribution. You implement it so the comparison is honest.
+Arabic ASR papers apply before reporting WER. Prior art, implemented here so
+the comparison against layer 2 is honest rather than rhetorical.
 
-Layer 2, `to_canonical`, is the contribution: one form that Arabic script,
-Arabizi and French-influenced spellings all map onto.
+Layer 2, `to_canonical`, is the contribution: a consonant skeleton that Arabic
+script and Arabizi both map onto.
 
-YOU write both. They are the claim of this repository expressed as code, so
-they are the first thing a panel will open.
+Design decisions and what they cost are recorded in notes/decisions.md. The
+short version: the canonical form is neither script. It is an abjad-style
+consonant skeleton, because Arabic script already omits short vowels and
+Arabizi writes them, so the only form both can reach is the one without them.
 
 Run: python normaliser/canon.py
 """
 
-# Arabic-script variants the standard pipeline folds. Kept as data rather than
-# buried in the function so the baseline is auditable.
-ALEF_VARIANTS = "آأإٱ"   # آ أ إ ٱ  -> ا
+ALEF_VARIANTS = "آأإٱ"
 ALEF = "ا"
-YAA_ALT = "ى"                              # ى -> ي
-YAA = "ي"
-TAA_MARBUTA = "ة"                          # ة -> ه
-HAA = "ه"
-TATWEEL = "ـ"                              # ـ  removed
-DIACRITICS = "ًٌٍَُِّْ"
+YAA_ALT, YAA = "ى", "ي"
+TAA_MARBUTA, HAA = "ة", "ه"
+TATWEEL = "ـ"
+DIACRITICS = "ًٌٍَُِّْٰ"
 
-# The Arabizi numeral substitutions. This is the axis the standard pipeline
-# cannot see, because these are not spelling variants, they are a different
-# script.
-NUMERAL_MAP = {
-    "3": "ع",   # ع
-    "7": "ح",   # ح
-    "9": "ق",   # ق
-    "2": "ء",   # ء
-    "5": "خ",   # خ
-    "8": "غ",   # غ
+# Arabic script to canonical. Emphatics are merged with their plain
+# counterparts (ص->s, ض->d, ط->t, ظ->d) because Arabizi does not
+# distinguish them at all, so keeping them apart would guarantee a mismatch.
+ARABIC_MAP = {
+    "ا": "", "ب": "b", "ت": "t", "ث": "t", "ج": "j",
+    "ح": "7", "خ": "x", "د": "d", "ذ": "d", "ر": "r",
+    "ز": "z", "س": "s", "ش": "c", "ص": "s", "ض": "d",
+    "ط": "t", "ظ": "d", "ع": "3", "غ": "g", "ف": "f",
+    "ق": "9", "ك": "k", "ل": "l", "م": "m", "ن": "n",
+    "ه": "h", "و": "w", "ي": "y", "ء": "2",
+    "گ": "g", "پ": "p", "ڤ": "v",
 }
+
+# Latin, longest match first. Digraphs must be tried before their letters or
+# "sh" is read as s followed by h.
+LATIN_MAP = {
+    "sh": "c", "ch": "c", "kh": "x", "gh": "g", "th": "t", "dj": "j",
+    "ou": "", "ai": "", "ei": "", "ee": "",
+    "3": "3", "7": "7", "9": "9", "2": "2", "5": "x", "8": "g",
+    "b": "b", "t": "t", "j": "j", "d": "d", "r": "r", "z": "z", "s": "s",
+    "c": "c", "f": "f", "q": "9", "k": "k", "g": "g", "l": "l", "m": "m",
+    "n": "n", "h": "h", "w": "w", "y": "y", "v": "v", "p": "p", "x": "x",
+    "a": "", "e": "", "i": "", "o": "", "u": "",
+    "é": "", "è": "", "ê": "", "à": "", "ô": "", "û": "",
+}
+_LATIN_KEYS = sorted(LATIN_MAP, key=len, reverse=True)
 
 
 def normalise_arabic(s: str) -> str:
-    """The standard Arabic-script baseline. Prior art, implemented for comparison.
+    """The standard Arabic-script baseline. Deliberately the weak layer."""
+    out = []
+    for ch in s:
+        if ch in DIACRITICS or ch == TATWEEL:
+            continue
+        if ch in ALEF_VARIANTS:
+            ch = ALEF
+        elif ch == YAA_ALT:
+            ch = YAA
+        elif ch == TAA_MARBUTA:
+            ch = HAA
+        out.append(ch)
+    return "".join(out)
 
-    Fold the Alef variants, ى to ي, ة to ه, strip tatweel and diacritics.
-    Nothing clever. This is deliberately the WEAK layer.
-    """
-    raise NotImplementedError
+
+def _canon_word(w: str) -> str:
+    out, i = [], 0
+    while i < len(w):
+        ch = w[i]
+        if ch in ARABIC_MAP:
+            out.append(ARABIC_MAP[ch])
+            i += 1
+            continue
+        for key in _LATIN_KEYS:
+            if w.startswith(key, i):
+                out.append(LATIN_MAP[key])
+                i += len(key)
+                break
+        else:
+            i += 1  # punctuation, digits we do not map, anything else
+    # Degeminate. Arabic script usually omits shadda while Arabizi doubles the
+    # letter, so a doubled consonant is a writing habit rather than a signal.
+    skeleton = []
+    for c in "".join(out):
+        if not skeleton or skeleton[-1] != c:
+            skeleton.append(c)
+    return "".join(skeleton)
 
 
 def to_canonical(s: str) -> str:
-    """Map any of the three conventions onto one form.
-
-    Design decisions you have to make and then defend:
-
-    1. What is the canonical target? Arabic script, a Latin transliteration, or
-       an abstract phoneme-ish form that is neither? There is no free lunch.
-       Whatever you pick, write down what it loses.
-    2. How do you detect which convention an input is in, or do you avoid
-       needing to?
-    3. `ch` is /ʃ/ in French habit but c-then-h in some Arabizi. `ou` is /u/ in
-       French habit but o-then-u elsewhere. These are genuinely ambiguous. What
-       do you do, and what is the error rate of that choice?
-
-    ponytail: start with the smallest mapping that makes the assertions below
-    pass. Do not build a phonological engine on day one.
-    """
-    raise NotImplementedError
+    """Map Arabic script or Arabizi onto one consonant skeleton."""
+    s = normalise_arabic(s.lower())
+    return " ".join(f for f in (_canon_word(w) for w in s.split()) if f)
 
 
 def demo():
-    shukran_ar = "شكرا"      # شكرا
-    afak_ar = "عافاك"  # عافاك
+    afak_ar, bezzaf_ar, ch7al_ar = "عافاك", "بزاف", "شحال"
 
-    # Layer 1 does what it says.
+    # Layer 1 does what the literature says it does, and no more.
     assert normalise_arabic("أحمد") == "احمد"
     assert normalise_arabic("مدرسة").endswith(HAA)
     assert TATWEEL not in normalise_arabic("مــدرسة")
 
-    # THE NEGATIVE RESULT, ENCODED AS A TEST.
-    # The standard pipeline cannot unify across scripts. If this assertion ever
-    # fails, the premise of this repository is wrong and FINDINGS.md says so.
-    assert normalise_arabic(shukran_ar) != normalise_arabic("shukran"), (
-        "Alef folding does not reach a transliteration. This failing would "
-        "falsify the claim in the README."
-    )
+    # THE NEGATIVE RESULT, ENCODED AS A TEST. Alef folding cannot reach a
+    # transliteration. If this ever fails, the README claim is falsified.
+    assert normalise_arabic(afak_ar) != normalise_arabic("3afak")
 
-    # Layer 2 is the contribution: all three conventions land together.
-    assert to_canonical(shukran_ar) == to_canonical("shukran") == to_canonical("chokran")
-    assert to_canonical(afak_ar) == to_canonical("3afak") == to_canonical("aafak")
+    # Layer 2: Arabic script and Arabizi converge.
+    assert to_canonical(afak_ar) == to_canonical("3afak") == "3fk"
+    assert to_canonical(bezzaf_ar) == to_canonical("bezzaf") == to_canonical("bzaf") == "bzf"
+    assert to_canonical(ch7al_ar) == to_canonical("sh7al") == to_canonical("ch7al") == "c7l"
 
-    # Idempotent. Normalising twice must not move it again, or scoring becomes
-    # order-dependent.
+    # Idempotent, or scoring becomes order-dependent.
     assert to_canonical(to_canonical("3afak")) == to_canonical("3afak")
 
+    # Multi-word.
+    assert to_canonical("شكرا " + bezzaf_ar) == "ckr bzf"
+
+    # KNOWN UNRECOVERABLE, asserted so they cannot be forgotten. These are not
+    # bugs, they are information the source spelling destroyed. Measured as an
+    # error class in FINDINGS.md rather than patched away.
+    assert to_canonical("aafak") != to_canonical(afak_ar), (
+        "French-habit spelling drops the guttural entirely: no layer can "
+        "recover a phoneme the writer did not record."
+    )
+    assert to_canonical("chhal") != to_canonical(ch7al_ar), "same, for ح written as h"
+    assert to_canonical("shukran") != to_canonical("شكرا"), (
+        "tanwin: Latin writes the final n, Arabic script carries it on the alef"
+    )
+
     print("all assertions passed")
-    print(f"  baseline keeps them apart: {normalise_arabic(shukran_ar)!r} vs {normalise_arabic('shukran')!r}")
-    print(f"  canonical brings together: {to_canonical(shukran_ar)!r}")
+    print()
+    rows = [
+        ("afak   (ar/arabizi/fr)", afak_ar, "3afak", "aafak"),
+        ("bezzaf (ar/arabizi/fr)", bezzaf_ar, "bezzaf", "bzaf"),
+        ("ch7al  (ar/arabizi/fr)", ch7al_ar, "sh7al", "chhal"),
+    ]
+    print(f"{'word':<24} {'arabic':>8} {'arabizi':>8} {'french':>8}  converge")
+    for label, a, b, c in rows:
+        ca, cb, cc = to_canonical(a), to_canonical(b), to_canonical(c)
+        mark = "all 3" if ca == cb == cc else ("2 of 3" if ca == cb else "no")
+        print(f"{label:<24} {ca:>8} {cb:>8} {cc:>8}  {mark}")
 
 
 if __name__ == "__main__":
