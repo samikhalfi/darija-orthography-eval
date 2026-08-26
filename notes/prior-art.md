@@ -1,6 +1,6 @@
 # Prior art
 
-Checked 2026-08-17, before any code was written. Week 1 deliverable.
+Checked 2026-08-25, before any code was written. Week 1 deliverable.
 
 **Headline: the central claim of the first README was not new.** That the lack
 of a standard dialectal orthography makes WER inadequate has been stated and

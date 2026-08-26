@@ -21,7 +21,7 @@ Same problem, two hats. This repository measures it and then tries to fix it.
 
 ## Claim
 
-Revised 2026-08-17 after the prior-art check in `notes/prior-art.md`. The first
+Revised 2026-08-25 after the prior-art check in `notes/prior-art.md`. The first
 version of this claim was that WER for Darija is unstable without a stated
 orthographic convention. That is true and it is **not new**: Ali et al. stated it
 in 2017 and proposed WERd to address it, and normalising before scoring is

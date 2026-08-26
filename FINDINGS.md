@@ -4,7 +4,7 @@ Updated as work lands. Empty sections mean not yet run, not nothing to report.
 
 ## 0. The three conventions are not symmetric
 
-Status: **found 2026-08-17**, while implementing the normaliser. Not predicted
+Status: **found 2026-08-26**, while implementing the normaliser. Not predicted
 by the plan.
 
 The README treats Arabic script, Arabizi and French-habit spelling as three
